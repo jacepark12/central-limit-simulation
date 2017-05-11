@@ -51,6 +51,8 @@
 
  따라서 검정하고자 하는 자료가 정규분포를 따른다면 y=x 직선상에 놓이게 된다.
 
+![QQPlot](./images/QQPlot.png)
+
 
 ##### 사피로-월크 검정
 
@@ -63,5 +65,7 @@ QQPlot이외에도, 사피로-월크(Shapiro-Wilk)검정은 검정하고자 하�
 import scipy as sp
 sp.stats.probplot(x, plot=plt)
 ~~~
+
+#### 본론
 
 
