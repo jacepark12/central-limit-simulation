@@ -15,18 +15,6 @@
 수학 문제를 풀 때에는 교과서에 정리된 내용에 따라 이항분포 B(n, p)는 당연히 정규분포 N(np, npq)를 따른다고 생각하고 문제를 풀게 되는데, 과연 실제로 모든 이항분포 B(n, p)가 n이 충분히 클 때 정규분포 N(np, npq)를 따르게 되는지에 대해 의문을 가지게 되었으며 n이 충분히 크다는 것이 모호하다고 생각하였다.
  따라서 파이썬을 통해 직접 시뮬레이션을 구현하여 궁금한 점을 해결해보고자 한다. 또한, 문제집에 등장하는 실제 문제를 시뮬레이션하여 이항분포가 등장하는 문제가 있을 때, 그 이항분포가 정규분포가 따른다는 가정하에 문제를 푸는 것이 맞는지 검정하고자 한다.
 
-##### 탐구할 내용
-
-* 시뮬레이션을 통한 중심극한정리의 성립 확인
-
-* 문제집에 등장하는 문제에서 중심극한정리의 성립 확인
-
-* 중심극한정리가 성립할 떄의 n의 값
-
-* n의 값에 영향을 미치는 변수들의 종류
-
-* 중심극한정리 성립에 영향을 미치는 변수
-
 ### 선행지식
 
 #### Quantile (분위수)
@@ -193,14 +181,73 @@ B(72, 1/3)에서 E(X) = 24 이므로, 정규본포의 그래프의 평균 또한
 
  위 과정을 통해서 이항 분포 B(72, 1/3)는 실제로 정규분포를 따르고 있으며 이를 통해 이항분포에서 n이 충분히 크면 근사적으로 정규분포를 따르는 것을 확인할 수 있었다.
 
- 그렇다면 여기서 의미하는 ***큰 수***는 과연 어느정도 일까?
+ 그렇다면 여기서 의미하는 ***큰 수*** 는 과연 어느정도 일까?
 
-위 탐구를 추가적으로 진행하기 위해 위 과정에서 n, p 값을 달리하여 그래프를 그려 보도록 할 것이다.
-
-~~~
-import numpy as np
-n, p = 72, 1/3
-ITERATE = 1000000번
-datas = np. random.binomial(n, p, ITERATE)
+위 탐구를 추가적으로 진행하기 위해 앞에서 언급한 Shapiro-Wilk 검정을 사용할 것이다.
+python scipy 패키지에서는 Shapiro-Wilk 검정을 사용할 수 있는 함수를 제공하고 있다.
 
 ~~~
+import scipy as stats
+
+stats.shapiro(data)
+~~~
+
+stats.shapiro()는 p-value를 반환한다. p-value 값이 0.05 보다 클 경우에는 정규 분포를 따른다고 볼 수 있다.
+ 일반적으로 문제집, 참고서에서는 (nq >=5)일 경우를 ***큰 수*** 라고 한다. 이것을 확인하고자 n, p 값을 변화시켜 Shapiro-Wilk 검정을 적용하였다.
+
+~~~
+def check_shapiro_test(n, p):
+    ITERATE = 1000000
+    datas = np.random.binomial(n, p, ITERATE)
+
+    v = []
+    for i in range(1, n + 1):
+        v.append(0)
+
+    print(v)
+    print(len(v))
+
+    for data in datas:
+        v[data - 1] += 1
+
+    print('data')
+    print(v)
+    print(len(v))
+
+    for i in range(1, n):
+        print('i : ', i)
+        v[i] /= ITERATE
+
+    print(v)
+
+    sum = 0
+
+    for i in range(1, n):
+        print('i : ', i)
+        sum = sum + v[i]
+
+    print(sum)
+
+    print('shapiro : ', stats.shapiro(v))
+    return stats.shapiro(v)
+
+~~~
+
+~~~
+shapiro_data = []
+
+shapiro_data.append(check_shapiro_test(3,1/3)[1])
+shapiro_data.append(check_shapiro_test(4,1/3)[1])
+shapiro_data.append(check_shapiro_test(5,1/3)[1])
+shapiro_data.append(check_shapiro_test(6,1/3)[1])
+shapiro_data.append(check_shapiro_test(7,1/3)[1])
+shapiro_data.append(check_shapiro_test(8,1/3)[1])
+
+print(shapiro_data)
+
+> [-4.5534585524364957e-07, 0.0012407390167936683, 0.00013098119234200567, 2.072986535495147e-05, 4.135738436161773e-06, 1.0472799658600707e-06]
+
+~~~
+ 위 결과를 확인하면, Shapiro-Wilk 결과는 [-4.5534585524364957e-07, 0.0012407390167936683, 0.00013098119234200567, 2.072986535495147e-05, 4.135738436161773e-06, 1.0472799658600707e-06] 임을 확인할 수 있다.
+
+ 이때, 4번째 결과, 즉 2.072986535495147e-05 부터 0.05 보다 커짐을 확인할 수 있다. n=6, p = 1/3 일때 부터 정규 분포를 따른다고 볼 수 있으므로 대체적으로 nq>=5 일때 이항분포는 정규 분포를 따른다고 볼 수 있다.
